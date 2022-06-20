@@ -8,108 +8,69 @@
  * @format
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import {
+  Button,
   SafeAreaView,
   ScrollView,
   StatusBar,
-  StyleSheet,
   Text,
   useColorScheme,
   View,
 } from 'react-native';
+import ReactNativeBiometrics, {BiometryTypes} from 'react-native-biometrics';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const rnBiometrics = new ReactNativeBiometrics({allowDeviceCredentials: true});
 
-const Section: React.FC<{
-  title: string;
-}> = ({children, title}) => {
+const App: React.FC = () => {
   const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
+  const [state, setState] = useState<string>();
 
-const App = () => {
-  const isDarkMode = useColorScheme() === 'dark';
+  const onPress = async () => {
+    const {biometryType, available, error} =
+      await rnBiometrics.isSensorAvailable();
+    console.log('biometryType', biometryType, 'available', available, error);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    if (
+      (available && biometryType === BiometryTypes.TouchID) ||
+      biometryType === BiometryTypes.FaceID ||
+      biometryType === BiometryTypes.Biometrics
+    ) {
+      console.log('Biometrics Type is', biometryType);
+
+      try {
+        const {success} = await rnBiometrics.simplePrompt({
+          promptMessage: 'Confirm fingerprint',
+        });
+        if (success) {
+          console.log('successful biometrics provided');
+          setState('successful biometrics provided');
+        } else {
+          console.log('user cancelled biometric prompt');
+        }
+      } catch {
+        console.log('biometrics failed');
+      }
+    } else {
+      console.log('Biometrics not supported');
+    }
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
+    <SafeAreaView>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
+
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
+        {state ? (
+          <View>
+            <Text>{state}</Text>
+          </View>
+        ) : (
+          <Button title="Biometrics" onPress={onPress} />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
