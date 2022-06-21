@@ -1,29 +1,12 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * Generated with the TypeScript template
- * https://github.com/react-native-community/react-native-template-typescript
- *
- * @format
- */
-
 import React, {useState} from 'react';
-import {
-  Button,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import {View, Button, Text, StyleSheet} from 'react-native';
 import ReactNativeBiometrics, {BiometryTypes} from 'react-native-biometrics';
+import {useTheme} from './useTheme';
 
 const rnBiometrics = new ReactNativeBiometrics({allowDeviceCredentials: true});
 
-const App: React.FC = () => {
-  const isDarkMode = useColorScheme() === 'dark';
+export const SimplePrompt: React.FC = () => {
+  const isDarkMode = useTheme();
   const [state, setState] = useState<string>();
 
   const onPress = async () => {
@@ -56,21 +39,32 @@ const App: React.FC = () => {
     }
   };
 
-  return (
-    <SafeAreaView>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+  const onReset = () => {
+    setState(undefined);
+  };
 
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
-        {state ? (
-          <View>
-            <Text>{state}</Text>
-          </View>
-        ) : (
-          <Button title="Biometrics" onPress={onPress} />
-        )}
-      </ScrollView>
-    </SafeAreaView>
+  return (
+    <View style={styles.container}>
+      <View>
+        <Text style={{color: isDarkMode ? '#fff' : '#333'}}>Simple Prompt</Text>
+      </View>
+
+      {state ? (
+        <View>
+          <Text style={{color: isDarkMode ? '#fff' : '#333'}}>{state}</Text>
+          <Button title="Reset" onPress={onReset} />
+        </View>
+      ) : (
+        <Button title="Biometrics" onPress={onPress} />
+      )}
+    </View>
   );
 };
 
-export default App;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
